@@ -1,0 +1,53 @@
+package com.reposh.fmgurbanov.hiretest.eratosthenes;
+
+import java.util.BitSet;
+
+/**
+ * Теорема. Пусть n — натуральное число, которое не делится ни на какой полный квадрат. Тогда
+ * если n представимо в виде 4k+1, то оно просто тогда и только тогда, когда число натуральных решений уравнения 4x2+y2 = n нечетно.
+ * если n представимо в виде 6k+1, то оно просто тогда и только тогда, когда число натуральных решений уравнения 3x2+y2 = n нечетно.
+ * если n представимо в виде 12k-1, то оно просто тогда и только тогда, когда число натуральных решений уравнения 3x2−y2 = n, для которых x > y, нечетно.
+ */
+
+public class AktineSieve implements ISieve {
+
+    public AktineSieve() {
+    }
+
+    @Override
+    public BitSet getPrimesUpTo(long limit) {
+        BitSet sieve = new BitSet();
+        // Предварительное просеивание
+        for (long x2 = 1L, dx2 = 3L; x2 < limit; x2 += dx2, dx2 += 2L)
+            for (long y2 = 1L, dy2 = 3L, n; y2 < limit; y2 += dy2, dy2 += 2L) {
+                // n = 4x² + y²
+                n = (x2 << 2L) + y2;
+                if (n <= limit && (n % 12L == 1L || n % 12L == 5L))
+                    sieve.flip((int) n);
+                // n = 3x² + y²
+                n -= x2;
+                if (n <= limit && n % 12L == 7L)
+                    sieve.flip((int) n);
+                // n = 3x² - y² (при x > y)
+                if (x2 > y2) {
+                    n -= y2 << 1L;
+                    if (n <= limit && n % 12L == 11L)
+                        sieve.flip((int) n);
+                }
+            }
+        // Все числа, кратные квадратам, помечаются как составные
+        int r = 5;
+        for (long r2 = r * r, dr2 = (r << 1L) + 1L; r2 < limit; ++r, r2 += dr2, dr2 += 2L)
+            if (sieve.get(r))
+                for (long mr2 = r2; mr2 < limit; mr2 += r2)
+                    sieve.set((int) mr2, false);
+        // Числа 2 и 3 — заведомо простые
+        if (limit >= 2)
+            sieve.set(2, true);
+        if (limit >= 3)
+            sieve.set(3, true);
+        return sieve;
+    }
+
+
+}
